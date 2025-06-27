@@ -9,7 +9,6 @@ from aiogram.client.default import DefaultBotProperties
 
 from config import BOT_TOKEN
 
-# 🎁 Sovg'alar ro'yxati
 gifts = [
     "🎉 Siz -30% chegirma yutib oldingiz!",
     "🎉 Siz -10% chegirma yutib oldingiz!",
@@ -17,16 +16,12 @@ gifts = [
     "🎁 Bepul kirish darsi!",
 ]
 
-# Foydalanuvchilar va ularning sovg'alari (RAMda saqlanadi)
 user_gifts = {}
 
-# ✅ Bot obyektini yangi usulda yaratish (Aiogram 3.7+)
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
-# Dispatcher obyekti
 dp = Dispatcher()
 
-# 🎯 /start komandasi
 @dp.message(CommandStart())
 async def start_handler(message: Message):
     await message.answer(
@@ -34,17 +29,14 @@ async def start_handler(message: Message):
         reply_markup=gift_button(),
     )
 
-# 🎁 Tugma yasash
 def gift_button():
     builder = InlineKeyboardBuilder()
     builder.button(text="🎁 Sovgani olish", callback_data="get_gift")
     return builder.as_markup()
 
-# 🎲 Sovg‘ani yuborish funksiyasi
 @dp.callback_query(F.data == "get_gift")
 async def send_gift(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    # Agar foydalanuvchiga sovga berilgan bo'lsa, o'shani yubor
     if user_id in user_gifts:
         gift = user_gifts[user_id]
     else:
@@ -53,7 +45,6 @@ async def send_gift(callback: types.CallbackQuery):
     await callback.message.answer(f"{gift}")
     await callback.answer()
 
-# 🚀 Botni ishga tushurish
 async def main():
     await dp.start_polling(bot)
 
