@@ -1,5 +1,6 @@
 import asyncio
 import random
+import sqlite3
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import Message
 from aiogram.enums import ParseMode
@@ -16,11 +17,20 @@ gifts = [
     "🎁 Bepul kirish darsi!",
 ]
 
-user_gifts = {}
-
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 dp = Dispatcher()
+
+conn = sqlite3.connect("users.db")
+cursor = conn.cursor()
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_gifts (
+        user_id INTEGER PRIMARY KEY,
+        gift TEXT
+    )
+""")
+conn.commit()
+
 
 @dp.message(CommandStart())
 async def start_handler(message: Message):
@@ -37,12 +47,14 @@ def gift_button():
 @dp.callback_query(F.data == "get_gift")
 async def send_gift(callback: types.CallbackQuery):
     user_id = callback.from_user.id
-    if user_id in user_gifts:
-        gift = user_gifts[user_id]
+    cursor.execute("SELECT gift FROM user_gifts WHERE user_id = ?", (user_id,))
+    row = cursor.fetchone()
+    if row:
+        gift = row[0]
     else:
         gift = random.choice(gifts)
-        user_gifts[user_id] = gift
-
+        cursor.execute("INSERT INTO user_gifts (user_id, gift) VALUES (?, ?)", (user_id, gift))
+        conn.commit()
     await bot.send_message(callback.from_user.id, f"{gift}")
     await callback.answer()
 
