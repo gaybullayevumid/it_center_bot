@@ -42,7 +42,8 @@ async def send_gift(callback: types.CallbackQuery):
     else:
         gift = random.choice(gifts)
         user_gifts[user_id] = gift
-    await callback.message.answer(f"{gift}")
+
+    await bot.send_message(callback.from_user.id, f"{gift}")
     await callback.answer()
 
 async def main():
